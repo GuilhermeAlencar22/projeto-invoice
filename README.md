@@ -1,4 +1,4 @@
-# Projeto Invoice Automation (Python 3.13)
+# Projeto Invoice Automatizacao
 
 Este projeto é uma automação em Python para processar **invoices (faturas) em PDF**, extrair informações principais, salvar os dados em um arquivo JSON local e gerar análises com **pandas**.
 
@@ -59,7 +59,7 @@ git clone <URL_DO_SEU_REPOSITORIO>
 cd projeto-invoice
 ```
 
-2) Crie e ative um ambiente virtual (recomendado): 
+2) Crie e ative um ambiente virtual (caso use mac): 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -75,13 +75,13 @@ pip install -r requirements.txt
 Este projeto foi testado usando invoices do dataset público do Kaggle:  
 https://www.kaggle.com/datasets/ayoubcherguelaine/company-documents-dataset
 
-Passos sugeridos para obter os PDFs:
+Passos para obter os PDFs:
 
 1) Acesse o link do dataset  
 2) Vá em **Data Explorer**  
 3) Selecione a pasta **Invoices**  
 4) Baixe alguns arquivos PDF (ex: `invoice_10248.pdf`, `invoice_10249.pdf`...)  
-5) Coloque os PDFs dentro da pasta:
+5) Jogue os PDFs dentro da pasta:
 
 ```bash
 data/invoices/
@@ -102,7 +102,7 @@ O que acontece ao executar:
 - extrai os dados da fatura e dos itens (produto, quantidade e preço unitário)
 - valida os dados com **Pydantic**
 - cria ou atualiza o arquivo `database.json`
-- impede duplicidade: se um **Order ID** já existir no JSON, ele não será gravado novamente
+- impede duplicidade: se um **Order ID** já existir no JSON, ele não sera gravado denovo
 
 ### 2) Rodar as análises (analytics)
 
