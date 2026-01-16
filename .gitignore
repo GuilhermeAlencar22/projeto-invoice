@@ -1,5 +1,6 @@
-.venv/
-__pycache__/
-*.pyc
+database.json
 data/invoices/
-data/database.json
+__pycache__/
+.venv/
+*.pyc
+.DS_Store
