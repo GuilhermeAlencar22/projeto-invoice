@@ -86,6 +86,8 @@ Passos para obter os PDFs:
 ```bash
 data/invoices/
 ```
+- OBS: ao executar a ingestão, além dos contadores (`inserted`, `skipped_duplicates` e `errors`), o sistema também retorna `failed_files`, uma lista com os PDFs que falharam e o motivo do erro.
+
 ---
 
 ## Como executar
