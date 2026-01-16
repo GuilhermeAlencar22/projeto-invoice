@@ -55,7 +55,7 @@ Bibliotecas principais utilizadas:
 1) Clone o repositório e entre na pasta do projeto:
 
 ```bash
-git clone <URL_DO_SEU_REPOSITORIO>
+git clone https://github.com/GuilhermeAlencar22/projeto-invoice.git
 cd projeto-invoice
 ```
 
