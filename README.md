@@ -114,8 +114,31 @@ O que acontece ao executar:
 - calcula métricas com **pandas**
 - retorna os resultados no terminal em formato **JSON**
 
+- Opcional, é possível informar um número para retornar o Top X nos rankings:
+
+```bash
+python main.py analytics 3
+```
 ---
 
 ## Fluxo recomendado de uso
   1) `python main.py ingest`  
   2) `python main.py analytics`
+
+## Exemplo de saída (Analytics)
+
+Após rodar:
+```bash
+python main.py ingest
+python main.py analytics
+```
+
+Exemplo:
+```bash
+{
+  "total_faturas_processadas": 3,
+  "total_itens_processados": 8,
+  "media_valor_total_faturas": 1372.13,
+  "produto_mais_frequente": { "codigo": 51, "nome": "Manjimup Dried Apples" }
+}
+```
