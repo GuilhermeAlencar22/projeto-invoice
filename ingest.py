@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import List, Dict, Any
 import pdfplumber
 from models import Invoice, Item
-
 DB_PATH = "database.json"
 PDF_DIR = "data/invoices"
+
 def load_db(db_path: str) -> List[Dict[str, Any]]:
     if not os.path.exists(db_path):
         return []
@@ -27,7 +27,6 @@ def extract_text(pdf_path: str) -> str:
     with pdfplumber.open(pdf_path) as pdf:
         return "\n".join((page.extract_text() or "") for page in pdf.pages)
 
-
 def extract_field(text: str, pattern: str) -> str | None:
     m = re.search(pattern, text, flags=re.IGNORECASE)
     return m.group(1).strip() if m else None
@@ -41,10 +40,10 @@ def extract_items(text: str) -> List[Item]:
         m = item_pattern.match(ln)
         if not m:
             continue
+
         product = m.group(1).strip()
         quantity = int(m.group(2))
         unit_price = float(m.group(3))
-
         try:
             items.append(Item(product=product, quantity=quantity, unit_price=unit_price))
         except Exception:
@@ -61,12 +60,12 @@ def parse_invoice(pdf_path: str) -> Invoice:
 
     if not order_id or not customer_id or not order_date_raw:
         raise ValueError("Não conseguiu extrair campos principais")
-
     order_date = datetime.strptime(order_date_raw, "%Y-%m-%d").date()
     items = extract_items(text)
 
     if not items:
-        raise ValueError("Não conseguiu extrair")
+        raise ValueError("Não conseguiu extrair itens")
+
     return Invoice(
         order_id=str(order_id),
         order_date=order_date,
@@ -74,13 +73,17 @@ def parse_invoice(pdf_path: str) -> Invoice:
         items=items
     )
 
+
 def run_ingestion(pdf_dir: str = PDF_DIR, db_path: str = DB_PATH) -> Dict[str, Any]:
+    if not os.path.exists(pdf_dir):
+        return {"mensagem": f"Pasta de pdf nao encontrada: {pdf_dir}"}
     db = load_db(db_path)
-    existing_ids = {inv["order_id"] for inv in db}
+    existing_ids = {inv.get("order_id") for inv in db if isinstance(inv, dict)}
 
     inserted = 0
     skipped = 0
     errors = 0
+    failed_files: List[str] = []
 
     pdf_files = [f for f in os.listdir(pdf_dir) if f.lower().endswith(".pdf")]
     pdf_files = [os.path.join(pdf_dir, f) for f in pdf_files]
@@ -88,15 +91,18 @@ def run_ingestion(pdf_dir: str = PDF_DIR, db_path: str = DB_PATH) -> Dict[str, A
     for pdf_path in pdf_files:
         try:
             invoice = parse_invoice(pdf_path)
+
             if invoice.order_id in existing_ids:
                 skipped += 1
                 continue
+
             db.append(invoice.model_dump(mode="json"))
             existing_ids.add(invoice.order_id)
             inserted += 1
 
-        except Exception:
+        except Exception as e:
             errors += 1
+            failed_files.append(f"{os.path.basename(pdf_path)}: {str(e)}")
 
     save_db(db_path, db)
 
@@ -104,5 +110,6 @@ def run_ingestion(pdf_dir: str = PDF_DIR, db_path: str = DB_PATH) -> Dict[str, A
         "found_pdfs": len(pdf_files),
         "inserted": inserted,
         "skipped_duplicates": skipped,
-        "errors": errors
+        "errors": errors,
+        "failed_files": failed_files
     }
