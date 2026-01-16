@@ -59,7 +59,7 @@ git clone <URL_DO_SEU_REPOSITORIO>
 cd projeto-invoice
 ```
 
-2) Crie e ative um ambiente virtual (caso use mac): 
+2) Crie e ative um ambiente virtual (macOS/Linux): 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -102,7 +102,7 @@ O que acontece ao executar:
 - extrai os dados da fatura e dos itens (produto, quantidade e preço unitário)
 - valida os dados com **Pydantic**
 - cria ou atualiza o arquivo `database.json`
-- impede duplicidade: se um **Order ID** já existir no JSON, ele não sera gravado denovo
+- impede duplicidade: se um **Order ID** já existir no JSON, ele não sera gravado de novo
 
 ### 2) Rodar as análises (analytics)
 
