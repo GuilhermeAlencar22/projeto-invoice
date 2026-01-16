@@ -1,24 +1,28 @@
 import json
 import re
 import pandas as pd
+
 DB_PATH = "database.json"
+
 def split_product_code(product_str: str) -> dict:
     match = re.match(r"^(\d+)\s+(.*)$", product_str.strip())
     if match:
         return {"codigo": int(match.group(1)), "nome": match.group(2).strip()}
     return {"codigo": None, "nome": product_str.strip()}
 
-def run_analytics(db_path: str = DB_PATH):
+def run_analytics(db_path: str = DB_PATH, top_n: int = 5):
     try:
         with open(db_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except Exception:
-        return {"mensagem": "database.json não encontrado ou vazio"}
+        return {"mensagem": "database.json não encontrado ou vazio. Rode: python main.py ingest"}
 
     df = pd.DataFrame(data)
+    total_faturas_processadas = int(df["order_id"].nunique()) if "order_id" in df.columns else 0
 
     df_items = df.explode("items", ignore_index=True)
     df_items = df_items[df_items["items"].notna()]
+    total_itens_processados = int(len(df_items))
 
     items_norm = pd.json_normalize(df_items["items"])
     df_items = pd.concat([df_items.drop(columns=["items"]), items_norm], axis=1)
@@ -45,11 +49,13 @@ def run_analytics(db_path: str = DB_PATH):
             "produto": info["nome"],
             "total_gasto": round(float(total), 2)
         })
+
     products_list_df = (
         df_items[["product", "unit_price"]]
         .drop_duplicates()
         .sort_values(by=["product"])
     )
+
     lista_produtos = []
     for _, row in products_list_df.iterrows():
         info = split_product_code(row["product"])
@@ -58,8 +64,31 @@ def run_analytics(db_path: str = DB_PATH):
             "produto": info["nome"],
             "preco_unitario": round(float(row["unit_price"]), 2)
         })
+        
+    top_gasto_series = total_por_produto_series.head(top_n)
+    top_produtos_por_gasto = []
+    for product_name, total in top_gasto_series.items():
+        info = split_product_code(product_name)
+        top_produtos_por_gasto.append({
+            "codigo": info["codigo"],
+            "produto": info["nome"],
+            "total_gasto": round(float(total), 2)
+        })
+    freq_series = df_items["product"].value_counts().head(top_n)
+    top_produtos_por_frequencia = []
+    for product_name, count in freq_series.items():
+        info = split_product_code(product_name)
+        top_produtos_por_frequencia.append({
+            "codigo": info["codigo"],
+            "produto": info["nome"],
+            "frequencia": int(count)
+        })
 
     return {
+        "total_faturas_processadas": total_faturas_processadas,
+        "total_itens_processados": total_itens_processados,
+        "top_produtos_por_gasto": top_produtos_por_gasto,
+        "top_produtos_por_frequencia": top_produtos_por_frequencia,
         "media_valor_total_faturas": media_total,
         "produto_mais_frequente": produto_mais_frequente,
         "total_gasto_por_produto": total_gasto_por_produto,
