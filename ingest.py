@@ -3,7 +3,6 @@ import re
 import json
 from datetime import datetime
 from typing import List, Dict, Any
-
 import pdfplumber
 from models import Invoice, Item
 
@@ -18,7 +17,6 @@ def load_db(db_path: str) -> List[Dict[str, Any]]:
             return data if isinstance(data, list) else []
     except Exception:
         return []
-
 
 def save_db(db_path: str, data: List[Dict[str, Any]]) -> None:
     with open(db_path, "w", encoding="utf-8") as f:
@@ -39,7 +37,6 @@ def extract_items(text: str) -> List[Item]:
     items = []
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     item_pattern = re.compile(r"^(.*?)\s+(\d+)\s+(\d+(?:\.\d+)?)$")
-
     for ln in lines:
         m = item_pattern.match(ln)
         if not m:
@@ -58,7 +55,6 @@ def extract_items(text: str) -> List[Item]:
 
 def parse_invoice(pdf_path: str) -> Invoice:
     text = extract_text(pdf_path)
-
     order_id = extract_field(text, r"Order\s*ID\s*[:#]?\s*(\d+)")
     customer_id = extract_field(text, r"Customer\s*ID\s*[:#]?\s*([A-Z0-9]+)")
     order_date_raw = extract_field(text, r"Order\s*Date\s*[:#]?\s*(\d{4}-\d{2}-\d{2})")
@@ -70,15 +66,13 @@ def parse_invoice(pdf_path: str) -> Invoice:
     items = extract_items(text)
 
     if not items:
-        raise ValueError("Não conseguiu extrair itens")
-
+        raise ValueError("Não conseguiu extrair")
     return Invoice(
         order_id=str(order_id),
         order_date=order_date,
         customer_id=customer_id,
         items=items
     )
-
 
 def run_ingestion(pdf_dir: str = PDF_DIR, db_path: str = DB_PATH) -> Dict[str, Any]:
     db = load_db(db_path)
@@ -94,11 +88,9 @@ def run_ingestion(pdf_dir: str = PDF_DIR, db_path: str = DB_PATH) -> Dict[str, A
     for pdf_path in pdf_files:
         try:
             invoice = parse_invoice(pdf_path)
-
             if invoice.order_id in existing_ids:
                 skipped += 1
                 continue
-
             db.append(invoice.model_dump(mode="json"))
             existing_ids.add(invoice.order_id)
             inserted += 1
