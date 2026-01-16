@@ -1,20 +1,12 @@
 import json
 import re
 import pandas as pd
-
-
 DB_PATH = "database.json"
-
-
 def split_product_code(product_str: str) -> dict:
-    """
-    Ex: "51 Manjimup Dried Apples" -> {"codigo": 51, "nome": "Manjimup Dried Apples"}
-    """
     match = re.match(r"^(\d+)\s+(.*)$", product_str.strip())
     if match:
         return {"codigo": int(match.group(1)), "nome": match.group(2).strip()}
     return {"codigo": None, "nome": product_str.strip()}
-
 
 def run_analytics(db_path: str = DB_PATH):
     try:
@@ -39,7 +31,6 @@ def run_analytics(db_path: str = DB_PATH):
     produto_mais_frequente_raw = df_items["product"].value_counts().index[0]
     produto_mais_frequente = split_product_code(produto_mais_frequente_raw)
 
-    # Total gasto por produto (mas retornando em formato amigável)
     total_por_produto_series = (
         df_items.groupby("product")["line_total"]
         .sum()
@@ -54,14 +45,11 @@ def run_analytics(db_path: str = DB_PATH):
             "produto": info["nome"],
             "total_gasto": round(float(total), 2)
         })
-
-    # Lista de produtos com preço unitário (únicos)
     products_list_df = (
         df_items[["product", "unit_price"]]
         .drop_duplicates()
         .sort_values(by=["product"])
     )
-
     lista_produtos = []
     for _, row in products_list_df.iterrows():
         info = split_product_code(row["product"])
